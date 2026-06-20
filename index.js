@@ -24,9 +24,10 @@ window.onload = () => {
     if (action === 'wishlist' || action === 'alts_list' || action === 'alts') {
         const targetTab = action === 'wishlist' ? 'wishlist' : 'alts';
         switchTab(targetTab);
-        const encodedData = params.get('data');
+        let encodedData = params.get('data');
         if (encodedData) {
             try {
+                encodedData = encodedData.replace(/ /g, '+');
                 const jsonStr = decodeURIComponent(atob(encodedData));
                 const items = JSON.parse(jsonStr);
                 renderShowcase(items, targetTab);
@@ -40,9 +41,10 @@ window.onload = () => {
     }
     else if (action === 'setup') {
         switchTab('setup');
-        const encodedData = params.get('data');
+        let encodedData = params.get('data');
         if (encodedData) {
             try {
+                encodedData = encodedData.replace(/ /g, '+');
                 const jsonStr = decodeURIComponent(atob(encodedData));
                 const items = JSON.parse(jsonStr);
                 renderSetupShowcase(items);
