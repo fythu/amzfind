@@ -262,7 +262,12 @@
 
         <!-- 标签页: 心愿单 -->
         <div id="tab-wishlist" class="hidden w-full mx-auto pb-10">
-            <div class="text-center mb-8">
+            <div id="wishlist-masonry" class="masonry w-full mx-auto"></div>
+            <div id="wishlist-empty" class="hidden bg-white p-10 rounded-2xl shadow-sm text-center border border-dashed border-gray-300 w-full mx-auto">
+                <div class="text-4xl mb-4">🛒</div>
+                <h3 class="text-lg font-bold text-gray-700 mb-2">心愿单是空的</h3>
+            </div>
+            <div class="text-center mt-12 bg-white/50 backdrop-blur-sm p-6 rounded-2xl border border-gray-100">
                 <h1 class="text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600 inline-block mb-3">🛍️ 心愿单</h1>
                 <p class="text-gray-500 text-sm w-full mx-auto">这是我保存的心愿单好物。直接点击卡片即可在亚马逊查看。</p>
                 <div class="mt-4 flex justify-center">
@@ -272,16 +277,16 @@
                     </button>
                 </div>
             </div>
-            <div id="wishlist-masonry" class="masonry w-full mx-auto"></div>
-            <div id="wishlist-empty" class="hidden bg-white p-10 rounded-2xl shadow-sm text-center border border-dashed border-gray-300 w-full mx-auto">
-                <div class="text-4xl mb-4">🛒</div>
-                <h3 class="text-lg font-bold text-gray-700 mb-2">心愿单是空的</h3>
-            </div>
         </div>
 
         <!-- 标签页: 备选好物 -->
         <div id="tab-alts" class="hidden w-full mx-auto pb-10">
-            <div class="text-center mb-8">
+            <div id="alts-masonry" class="masonry w-full mx-auto"></div>
+            <div id="alts-empty" class="hidden bg-white p-10 rounded-2xl shadow-sm text-center border border-dashed border-gray-300 w-full mx-auto">
+                <div class="text-4xl mb-4">🛒</div>
+                <h3 class="text-lg font-bold text-gray-700 mb-2">好物合集是空的</h3>
+            </div>
+            <div class="text-center mt-12 bg-white/50 backdrop-blur-sm p-6 rounded-2xl border border-gray-100">
                 <h1 class="text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-green-500 to-teal-500 inline-block mb-3">🌟 备选好物</h1>
                 <p class="text-gray-500 text-sm w-full mx-auto">这是我保存的备选好物合集。直接点击卡片即可在亚马逊查看。</p>
                 <div class="mt-4 flex justify-center">
@@ -290,11 +295,6 @@
                         <span id="copy-btn-text-alts">复制此页链接分享</span>
                     </button>
                 </div>
-            </div>
-            <div id="alts-masonry" class="masonry w-full mx-auto"></div>
-            <div id="alts-empty" class="hidden bg-white p-10 rounded-2xl shadow-sm text-center border border-dashed border-gray-300 w-full mx-auto">
-                <div class="text-4xl mb-4">🛒</div>
-                <h3 class="text-lg font-bold text-gray-700 mb-2">好物合集是空的</h3>
             </div>
         </div>
 
