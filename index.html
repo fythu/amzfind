@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>发现平替与好物装备分享</title>
+    <link rel="stylesheet" href="style.css" />
+    <script src="tailwindcss.min.js"></script>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; }
+        .btn-hover-effect { transition: all 0.2s ease-in-out; }
+        .btn-hover-effect:hover { transform: translateY(-2px); box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .card-pop { transition: transform 0.2s, box-shadow 0.2s; }
+        .card-pop:hover { transform: translateY(-4px); box-shadow: 0 10px 20px rgba(0,0,0,0.08); z-index: 10; }
+        .masonry { column-count: 1; column-gap: 1rem; }
+        @media (min-width: 640px) { .masonry { column-count: 2; } }
+        @media (min-width: 1024px) { .masonry { column-count: 3; } }
+        .masonry-item { break-inside: avoid; margin-bottom: 1rem; }
+    </style>
+</head>
+<body class="bg-[#f8f9fa] min-h-screen text-gray-800">
+
+    <div class="w-full mx-auto p-4 sm:p-6 md:p-8">
+
+        <!-- 顶部标签页切换 -->
+        <div class="flex mb-8 bg-white rounded-full p-1 shadow-sm border border-gray-100 w-full sticky top-4 z-50 overflow-x-auto whitespace-nowrap" style="scrollbar-width: none;">
+            <button id="btn-tab-compare" onclick="switchTab('compare')" class="flex-1 py-2.5 px-3 text-center text-sm font-semibold text-gray-600 hover:text-blue-600 rounded-full transition-all">跨平台比价</button>
+            <button id="btn-tab-source" onclick="switchTab('source')" class="flex-1 py-2.5 px-3 text-center text-sm font-bold bg-blue-600 text-white rounded-full transition-all">全网找同款源头</button>
+            <button id="btn-tab-wishlist" onclick="switchTab('wishlist')" class="flex-1 py-2.5 px-3 text-center text-sm font-semibold text-gray-600 hover:text-blue-600 rounded-full transition-all">心愿单</button>
+            <button id="btn-tab-alts" onclick="switchTab('alts')" class="flex-1 py-2.5 px-3 text-center text-sm font-semibold text-gray-600 hover:text-blue-600 rounded-full transition-all">备选好物</button>
+            <button id="btn-tab-download" onclick="switchTab('download')" class="flex-1 py-2.5 px-3 text-center text-sm font-semibold text-gray-600 hover:text-blue-600 rounded-full transition-all">插件下载</button>
+            
+            <button id="btn-tab-bridge" onclick="switchTab('bridge')" class="hidden flex-1 py-2.5 px-3 text-center text-sm font-semibold text-gray-600 hover:text-blue-600 rounded-full transition-all">平替推荐(Amazon)</button>
+            <button id="btn-tab-setup" onclick="switchTab('setup')" class="hidden flex-1 py-2.5 px-3 text-center text-sm font-semibold text-gray-600 hover:text-blue-600 rounded-full transition-all">极客好物清单 Showcase</button>
+        </div>
+
+        <!-- 标签页 1: 找同款源 -->
+        <div id="tab-source" class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 md:p-10 mb-8">
+            <h1 class="text-2xl font-bold text-gray-800 mb-2 text-center">全球找货神器 🌎</h1>
+            <p class="text-gray-500 text-center mb-8 text-sm">只需贴图或关键词，带您挖掘 1688 / 速卖通 / 阿里国际站 源头工厂</p>
+            
+            <div class="w-full mx-auto space-y-6">
+                <!-- 关键词 -->
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-1.5 flex items-center"><span class="bg-blue-100 text-blue-600 w-5 h-5 flex items-center justify-center rounded-full text-xs mr-2">1</span> 输入关键特征词</label>
+                    <input type="text" id="keyword" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none transition" placeholder="例如：YETI Rambler 20 oz Tumbler">
+                </div>
+                <!-- 链接/本地图 -->
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-1.5 flex items-center"><span class="bg-blue-100 text-blue-600 w-5 h-5 flex items-center justify-center rounded-full text-xs mr-2">2</span> 配合图片定位更精准 (可选)</label>
+                    <div class="flex items-center gap-3">
+                        <input type="text" id="imgUrl" class="flex-1 bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none transition" placeholder="输入图片直链 URL...">
+                        <div class="relative flex-none">
+                            <input type="file" id="localImage" accept="image/*" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer" onchange="handleLocalUpload(event)">
+                            <button class="bg-blue-50 text-blue-600 font-semibold py-3 px-5 rounded-xl flex items-center border border-blue-200 hover:bg-blue-100 transition whitespace-nowrap">
+                                📤 上传图片
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div id="imagePreviewContainer" class="hidden mt-4 bg-gray-50 rounded-xl p-4 border border-gray-200 flex justify-center relative">
+                    <img id="imagePreview" src="" class="max-h-40 rounded object-contain shadow-sm border border-gray-100">
+                    <button onclick="clearPreview()" class="absolute top-2 right-2 bg-white rounded-full p-1 shadow hover:bg-gray-100 text-gray-500">✕</button>
+                </div>
+                
+                <!-- 平台入口 -->
+                <div class="grid grid-cols-2 gap-4 mt-8 pt-6 border-t border-gray-100">
+                    
+                    <button onclick="searchPlatform('aliexpress')" class="btn-hover-effect bg-[#e53f3f] text-white font-bold py-3.5 px-4 rounded-xl flex flex-col items-center justify-center shadow-md">
+                        <span>🚀 去 速卖通 (AliExpress)</span>
+                    </button>
+                    <button onclick="searchPlatform('alibaba')" class="btn-hover-effect bg-[#ff6600] text-white font-bold py-3.5 px-4 rounded-xl flex flex-col items-center justify-center shadow-md">
+                        <span>🏬 去 阿里国际站</span>
+                    </button>
+                    <button onclick="searchPlatform('1688')" class="btn-hover-effect bg-gradient-to-r from-[#ff7a00] to-[#ff5000] text-white font-bold py-3.5 px-4 rounded-xl text-lg shadow-md">
+                        🔥 去 1688 挖掘
+                    </button>
+                    <button onclick="searchPlatform('taobao')" class="btn-hover-effect bg-gradient-to-r from-[#ff5000] to-[#ff3000] text-white font-bold py-3.5 px-4 rounded-xl text-lg shadow-md">
+                        🛍️ 去 淘宝 搜同款
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 标签页 2: 中转页/平替推荐 -->
+        <div id="tab-bridge" class="hidden w-full mx-auto">
+            <!-- 原商品展示 -->
+            <div id="original-product-container" class="flex gap-4 mb-8 bg-white p-5 rounded-2xl shadow-sm border border-gray-100 items-center">
+                <div id="orig-placeholder" class="w-24 h-24 bg-gray-50 border border-gray-100 rounded-lg flex items-center justify-center flex-shrink-0 p-1">
+                    <svg class="h-8 w-8 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                </div>
+                <div class="flex-1">
+                    <span class="inline-block bg-blue-100 text-blue-700 text-[10px] px-2 py-0.5 rounded uppercase font-bold mb-1.5">您刚浏览的名牌商品</span>
+                    <h3 id="orig-title" class="font-bold text-gray-800 text-base line-clamp-2 leading-tight">等待插件投喂数据...</h3>
+                    <div class="mt-2 flex items-center gap-3">
+                        <span id="orig-price" class="text-gray-500 font-bold bg-gray-100 px-2 rounded">-</span>
+                        <a id="orig-link" href="#" target="_blank" class="text-blue-500 text-sm hover:underline hidden font-medium text-blue-600">去亚马逊原链接查看 ↗</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex items-center justify-between mb-6">
+                <h2 class="text-xl font-bold text-gray-800 flex items-center">
+                    <span class="bg-red-100 text-red-500 w-8 h-8 rounded-full flex items-center justify-center mr-2">🔥</span> 
+                    为您找到的 Amazon 极客平替 (Dupes)
+                </h2>
+                <span class="text-xs text-gray-400 bg-white px-2 py-1 rounded border">Save +50% on average</span>
+            </div>
+
+            <div id="dupe-list" class="space-y-4"></div>
+        </div>
+
+        <!-- 标签页 4: 跨平台比价 & 捡漏 -->
+        <div id="tab-compare" class="hidden bg-white rounded-2xl shadow-sm border border-gray-100 p-6 md:p-10 mb-8 w-full mx-auto">
+            <div id="compare-main-header">
+                <h1 class="text-2xl font-bold text-gray-800 mb-2 text-center">北美查底价 & 亚马逊捡漏神器 🕵️‍♂️</h1>
+                <p class="text-gray-500 text-center mb-8 text-sm">去 Walmart、Target 等本土超市比价，或挖掘亚马逊官方清仓/二手特卖</p>
+            </div>
+            
+            <div id="compare-menu" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 w-full mx-auto">
+                <button onclick="openCompareTool('competitor', '<span class=\'text-xl\'>🛒</span> 跨超市全网查价 (Local Competitor Check)', 'keyword')" class="btn-hover-effect bg-white border border-gray-200 p-6 rounded-2xl shadow-sm flex flex-col items-center justify-center text-center h-full">
+                    <span class="text-4xl mb-3">🛒</span>
+                    <span class="font-bold text-gray-800 mb-1">跨超市全网查价</span>
+                    <span class="text-xs text-gray-500">Walmart, Target, BestBuy, eBay</span>
+                </button>
+                <button onclick="openCompareTool('hidden', '<span class=\'text-xl\'>📦</span> 亚马逊隐藏特卖区 (Hidden Deals)', 'keyword')" class="btn-hover-effect bg-white border border-gray-200 p-6 rounded-2xl shadow-sm flex flex-col items-center justify-center text-center h-full">
+                    <span class="text-4xl mb-3">📦</span>
+                    <span class="font-bold text-gray-800 mb-1">亚马逊隐藏特卖区</span>
+                    <span class="text-xs text-gray-500">Warehouse, Outlet, Woot!</span>
+                </button>
+                <button onclick="openCompareTool('sold-by', '<span class=\'text-xl\'>🛡️</span> 亚马逊自营防坑 (Sold by Amazon Only)', 'keyword')" class="btn-hover-effect bg-white border border-gray-200 p-6 rounded-2xl shadow-sm flex flex-col items-center justify-center text-center h-full">
+                    <span class="text-4xl mb-3">🛡️</span>
+                    <span class="font-bold text-gray-800 mb-1">亚马逊自营防坑</span>
+                    <span class="text-xs text-gray-500">仅限官方售卖</span>
+                </button>
+                <button onclick="openCompareTool('community', '<span class=\'text-xl\'>💬</span> 社区捡漏与神价 (Deals & Community)', 'keyword')" class="btn-hover-effect bg-white border border-gray-200 p-6 rounded-2xl shadow-sm flex flex-col items-center justify-center text-center h-full">
+                    <span class="text-4xl mb-3">💬</span>
+                    <span class="font-bold text-gray-800 mb-1">社区捡漏与神价</span>
+                    <span class="text-xs text-gray-500">Slickdeals 搜神价</span>
+                </button>
+                <button onclick="openCompareTool('review', '<span class=\'text-xl\'>📹</span> 真实开箱/吐槽全网搜 (Real Reviews on Social Media)', 'keyword')" class="btn-hover-effect bg-white border border-gray-200 p-6 rounded-2xl shadow-sm flex flex-col items-center justify-center text-center h-full">
+                    <span class="text-4xl mb-3">📹</span>
+                    <span class="font-bold text-gray-800 mb-1">真实开箱与吐槽</span>
+                    <span class="text-xs text-gray-500">TikTok, YouTube, Reddit</span>
+                </button>
+                <button onclick="openCompareTool('price-history', '<span class=\'text-xl\'>📉</span> 历史价格走势 (Price History)', 'asin')" class="btn-hover-effect bg-white border border-gray-200 p-6 rounded-2xl shadow-sm flex flex-col items-center justify-center text-center h-full">
+                    <span class="text-4xl mb-3">📉</span>
+                    <span class="font-bold text-gray-800 mb-1">历史价格走势</span>
+                    <span class="text-xs text-gray-500">CamelCamelCamel, Keepa</span>
+                </button>
+                <button onclick="openCompareTool('fake-review', '<span class=\'text-xl\'>🛡️</span> 虚假评论一键体检 (Fake Review Analyzer)', 'asin')" class="btn-hover-effect bg-white border border-gray-200 p-6 rounded-2xl shadow-sm flex flex-col items-center justify-center text-center h-full">
+                    <span class="text-4xl mb-3">🛡️</span>
+                    <span class="font-bold text-gray-800 mb-1">虚假评论体检</span>
+                    <span class="text-xs text-gray-500">Fakespot, ReviewMeta</span>
+                </button>
+                <button onclick="openCompareTool('promo-code', '<span class=\'text-xl\'>✂️</span> 找神券与折扣码 (Find Promo Codes)', 'brand')" class="btn-hover-effect bg-white border border-gray-200 p-6 rounded-2xl shadow-sm flex flex-col items-center justify-center text-center h-full">
+                    <span class="text-4xl mb-3">✂️</span>
+                    <span class="font-bold text-gray-800 mb-1">找神券与折扣码</span>
+                    <span class="text-xs text-gray-500">Google, RetailMeNot</span>
+                </button>
+            </div>
+
+            <div id="compare-tool-view" class="w-full mx-auto space-y-6 hidden">
+                <button onclick="closeCompareTool()" class="text-gray-600 font-bold mb-2 flex items-center hover:text-blue-600 hover:bg-blue-50 px-4 py-2 rounded-full inline-flex transition-colors border border-gray-200 hover:border-blue-200 shadow-sm w-fit">
+                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg> 返回所有工具
+                </button>
+                
+                <h3 id="compare-tool-title" class="text-lg font-bold mb-4 border-b pb-3 flex items-center gap-2"></h3>
+
+                <!-- Keyword Input Area -->
+                <div id="compare-input-keyword" class="hidden">
+                    <label class="block text-sm font-bold text-gray-700 mb-1.5 flex items-center"><span class="bg-indigo-100 text-indigo-600 w-5 h-5 flex items-center justify-center rounded-full text-xs mr-2">🔍</span> 输入商品关键词或标题</label>
+                    <input type="text" id="compare-keyword" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 focus:bg-white focus:ring-2 focus:ring-indigo-500 outline-none transition" placeholder="例如：Dyson V11 Vacuum">
+                </div>
+
+                <!-- ASIN Input Area -->
+                <div id="compare-input-asin" class="hidden">
+                    <label class="block text-sm font-bold text-gray-700 mb-1.5 flex items-center"><span class="bg-purple-100 text-purple-600 w-5 h-5 flex items-center justify-center rounded-full text-xs mr-2">📈</span> 价格历史一键查询 (输入当前商品的 ASIN)</label>
+                    <input type="text" id="compare-asin" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 focus:bg-white focus:ring-2 focus:ring-purple-500 outline-none transition" placeholder="例如：B08N5WRWNW">
+                </div>
+
+                <!-- Brand Input Area -->
+                <div id="compare-input-brand" class="hidden">
+                    <label class="block text-sm font-bold text-gray-700 mb-1.5 flex items-center"><span class="bg-red-100 text-red-600 w-5 h-5 flex items-center justify-center rounded-full text-xs mr-2">🏷️</span> Promo Code / Coupon 搜刮器 (输入品牌名)</label>
+                    <input type="text" id="compare-brand" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 focus:bg-white focus:ring-2 focus:ring-red-500 outline-none transition" placeholder="例如：Anker">
+                </div>
+
+                <div class="pt-2">
+                    <!-- Each Tool's Action Buttons -->
+                    <div id="compare-actions-competitor" class="hidden grid grid-cols-2 lg:grid-cols-4 gap-3">
+                        <button onclick="searchCompare('walmart')" class="btn-hover-effect bg-[#0071ce] text-white font-bold py-3.5 px-4 rounded-xl shadow-sm text-sm">去 Walmart 搜</button>
+                        <button onclick="searchCompare('target')" class="btn-hover-effect bg-[#cc0000] text-white font-bold py-3.5 px-4 rounded-xl shadow-sm text-sm">去 Target 搜</button>
+                        <button onclick="searchCompare('bestbuy')" class="btn-hover-effect bg-[#0046be] text-[#ffe000] font-bold py-3.5 px-4 rounded-xl shadow-sm text-sm">去 BestBuy</button>
+                        <button onclick="searchCompare('ebay')" class="btn-hover-effect bg-white border border-gray-300 text-[#e53238] font-bold py-3.5 px-4 rounded-xl shadow-sm text-sm">去 eBay 搜二手</button>
+                    </div>
+
+                    <div id="compare-actions-hidden" class="hidden grid grid-cols-1 md:grid-cols-3 gap-3">
+                        <button onclick="searchCompare('amazon-warehouse')" class="btn-hover-effect bg-[#232f3e] text-[#ff9900] font-bold py-3.5 px-4 rounded-xl flex flex-col items-center justify-center shadow-sm"><span>Amazon Warehouse</span><span class="text-[11px] font-normal text-gray-300 mt-1">搜官方二手/开箱捡漏</span></button>
+                        <button onclick="searchCompare('amazon-outlet')" class="btn-hover-effect bg-[#232f3e] text-[#ff9900] font-bold py-3.5 px-4 rounded-xl flex flex-col items-center justify-center shadow-sm"><span>Amazon Outlet</span><span class="text-[11px] font-normal text-gray-300 mt-1">搜官方滞销/清仓区</span></button>
+                        <button onclick="searchCompare('woot')" class="btn-hover-effect bg-[#5b8a01] text-white font-bold py-3.5 px-4 rounded-xl flex flex-col items-center justify-center shadow-sm"><span>Woot! 特卖</span><span class="text-[11px] font-normal text-green-100 mt-1">去亚马逊旗下网站搜</span></button>
+                    </div>
+
+                    <div id="compare-actions-sold-by" class="hidden grid grid-cols-1 gap-3">
+                        <button onclick="searchCompare('amazon-sold-by')" class="btn-hover-effect bg-[#f5f5f5] text-[#232f3e] border border-gray-300 font-bold py-4 px-4 rounded-xl flex flex-col items-center justify-center shadow-sm hover:bg-gray-200 transition-colors"><span class="flex items-center gap-2"><svg class="w-5 h-5 text-[#ff9900]" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" /></svg>全网搜：仅限亚马逊自营 (Sold by Amazon)</span><span class="text-[11px] font-normal text-gray-500 mt-1">屏蔽第三方卖家假货，100% 官方售卖与发货防坑</span></button>
+                    </div>
+
+                    <div id="compare-actions-community" class="hidden grid grid-cols-1 md:grid-cols-1 gap-3">
+                        <button onclick="searchCompare('slickdeals')" class="btn-hover-effect bg-[#008cc9] text-white font-bold py-4 px-4 rounded-xl flex flex-col items-center justify-center shadow-sm"><span>🔥 Slickdeals</span><span class="text-[11px] font-normal text-blue-100 mt-1">搜历史神价或车牌</span></button>
+                    </div>
+
+                    <div id="compare-actions-review" class="hidden grid grid-cols-1 md:grid-cols-3 gap-3">
+                        <button onclick="searchReview('tiktok')" class="btn-hover-effect bg-black text-white font-bold py-3.5 px-4 rounded-xl flex flex-col items-center justify-center shadow-sm"><span>🎵 TikTok</span><span class="text-[11px] font-normal text-gray-300 mt-1">搜避坑指南/日常</span></button>
+                        <button onclick="searchReview('youtube')" class="btn-hover-effect bg-[#ff0000] text-white font-bold py-3.5 px-4 rounded-xl flex flex-col items-center justify-center shadow-sm"><span>▶️ YouTube</span><span class="text-[11px] font-normal text-red-100 mt-1">搜真实开箱与评测</span></button>
+                        <button onclick="searchReview('reddit')" class="btn-hover-effect bg-[#ff4500] text-white font-bold py-3.5 px-4 rounded-xl flex flex-col items-center justify-center shadow-sm"><span>🤖 Reddit</span><span class="text-[11px] font-normal text-orange-100 mt-1">搜真实评价/避坑</span></button>
+                    </div>
+
+                    <div id="compare-actions-price-history" class="hidden grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <button onclick="searchAsin('camel')" class="btn-hover-effect bg-[#e3d7bf] text-[#866a45] border border-[#d2c2a3] font-bold py-3.5 px-4 rounded-xl flex flex-col items-center justify-center shadow-sm"><span>🐫 CamelCamelCamel</span><span class="text-[11px] font-normal mt-1 opacity-80">查看跌破史低价</span></button>
+                        <button onclick="searchAsin('keepa')" class="btn-hover-effect bg-[#eaf4fc] text-[#297fb8] border border-[#c3daf1] font-bold py-3.5 px-4 rounded-xl flex flex-col items-center justify-center shadow-sm"><span>📈 Keepa</span><span class="text-[11px] font-normal mt-1 opacity-80">专业价格追踪曲线</span></button>
+                    </div>
+
+                    <div id="compare-actions-fake-review" class="hidden grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <button onclick="searchAsin('fakespot')" class="btn-hover-effect bg-[#1a1a1a] text-white font-bold py-3.5 px-4 rounded-xl flex flex-col items-center justify-center shadow-sm"><span>🤖 Fakespot</span><span class="text-[11px] font-normal text-gray-400 mt-1">AI 识别刷单与假好评</span></button>
+                        <button onclick="searchAsin('reviewmeta')" class="btn-hover-effect bg-[#f39c12] text-white font-bold py-3.5 px-4 rounded-xl flex flex-col items-center justify-center shadow-sm"><span>📊 ReviewMeta</span><span class="text-[11px] font-normal mt-1 opacity-90">剔除虚假评论后的真实评分</span></button>
+                    </div>
+
+                    <div id="compare-actions-promo-code" class="hidden grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <button onclick="searchPromoCode('google')" class="btn-hover-effect bg-white border border-gray-300 text-gray-800 font-bold py-3.5 px-4 rounded-xl flex flex-col items-center justify-center shadow-sm"><span>🔍 Google 搜索</span><span class="text-[11px] font-normal text-gray-500 mt-1">搜 Brand + Promo Code</span></button>
+                        <button onclick="searchPromoCode('retailmenot')" class="btn-hover-effect bg-[#6000d1] text-white font-bold py-3.5 px-4 rounded-xl flex flex-col items-center justify-center shadow-sm"><span>🎫 RetailMeNot</span><span class="text-[11px] font-normal text-purple-200 mt-1">最大优惠码网站之一</span></button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 标签页 3: 好物装备清单 Shareable Showcase -->
+        <div id="tab-setup" class="hidden">
+            
+            <div class="text-center mb-8">
+                <h1 id="setup-title" class="text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600 inline-block mb-3">🔥 我的极致桌面装备清单</h1>
+                <p id="setup-subtitle" class="text-gray-500 text-sm w-full mx-auto">这是我精心挑选的高能装备。遇到心仪的，直接点击卡片即可在亚马逊入手。The links below are affiliate links.</p>
+                <div class="mt-4 flex justify-center">
+                    <button onclick="copyShareUrl()" class="bg-white border border-gray-200 text-gray-700 shadow-sm hover:bg-gray-50 hover:text-blue-600 font-semibold py-2 px-5 rounded-full text-sm flex items-center transition">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+                        <span id="copy-btn-text">复制此页链接分享到小红书/Reddit</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- 瀑布流布局渲染区域 -->
+            <div id="setup-masonry" class="masonry w-full mx-auto pb-10">
+                <!-- JS 动态注入 -->
+            </div>
+            
+            <!-- 如果没有数据时展示 -->
+            <div id="setup-empty" class="hidden bg-white p-10 rounded-2xl shadow-sm text-center border border-dashed border-gray-300 w-full mx-auto">
+                <div class="text-4xl mb-4">🛒</div>
+                <h3 class="text-lg font-bold text-gray-700 mb-2">这份装备清单看起来是空的</h3>
+                <p class="text-gray-500 text-sm mb-6">请通过插件的 "💛 好物收集" 面板勾选您的心水好物，点击底部的分享按钮自动生成本页。</p>
+            </div>
+        </div>
+
+        <!-- 标签页: 心愿单 -->
+        <div id="tab-wishlist" class="hidden w-full mx-auto pb-10">
+            <div class="text-center mb-8">
+                <h1 class="text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600 inline-block mb-3">🛍️ 心愿单</h1>
+                <p class="text-gray-500 text-sm w-full mx-auto">这是我保存的心愿单好物。直接点击卡片即可在亚马逊查看。</p>
+                <div class="mt-4 flex justify-center">
+                    <button onclick="copyShareUrl()" class="bg-white border border-gray-200 text-gray-700 shadow-sm hover:bg-gray-50 hover:text-blue-600 font-semibold py-2 px-5 rounded-full text-sm flex items-center transition">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+                        <span id="copy-btn-text-wishlist">复制此页链接分享</span>
+                    </button>
+                </div>
+            </div>
+            <div id="wishlist-masonry" class="masonry w-full mx-auto"></div>
+            <div id="wishlist-empty" class="hidden bg-white p-10 rounded-2xl shadow-sm text-center border border-dashed border-gray-300 w-full mx-auto">
+                <div class="text-4xl mb-4">🛒</div>
+                <h3 class="text-lg font-bold text-gray-700 mb-2">心愿单是空的</h3>
+            </div>
+        </div>
+
+        <!-- 标签页: 备选好物 -->
+        <div id="tab-alts" class="hidden w-full mx-auto pb-10">
+            <div class="text-center mb-8">
+                <h1 class="text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-green-500 to-teal-500 inline-block mb-3">🌟 备选好物</h1>
+                <p class="text-gray-500 text-sm w-full mx-auto">这是我保存的备选好物合集。直接点击卡片即可在亚马逊查看。</p>
+                <div class="mt-4 flex justify-center">
+                    <button onclick="copyShareUrl()" class="bg-white border border-gray-200 text-gray-700 shadow-sm hover:bg-gray-50 hover:text-green-600 font-semibold py-2 px-5 rounded-full text-sm flex items-center transition">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+                        <span id="copy-btn-text-alts">复制此页链接分享</span>
+                    </button>
+                </div>
+            </div>
+            <div id="alts-masonry" class="masonry w-full mx-auto"></div>
+            <div id="alts-empty" class="hidden bg-white p-10 rounded-2xl shadow-sm text-center border border-dashed border-gray-300 w-full mx-auto">
+                <div class="text-4xl mb-4">🛒</div>
+                <h3 class="text-lg font-bold text-gray-700 mb-2">好物合集是空的</h3>
+            </div>
+        </div>
+
+        <!-- 标签页: 插件下载 -->
+        <div id="tab-download" class="hidden w-full mx-auto pb-10">
+            <div class="bg-white p-8 md:p-12 rounded-2xl shadow-sm border border-gray-100 w-full flex flex-col items-center">
+                <div class="w-24 h-24 bg-blue-50 rounded-full flex items-center justify-center mb-6">
+                    <svg class="w-12 h-12 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                </div>
+                <h2 class="text-2xl font-bold text-gray-800 mb-2">下载 Amazon Seller Assistant</h2>
+                <p class="text-gray-500 mb-8 text-center max-w-md">当前版本包含跨平台比价、源头工厂、历史价格、FBA利润计算器等全部高级功能。</p>
+                <a href="#" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-full shadow-lg shadow-blue-200 transition-transform transform hover:-translate-y-1 flex items-center">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                    立即下载安装包
+                </a>
+                <div class="mt-8 text-left bg-gray-50 rounded-xl p-6 w-full text-sm text-gray-600">
+                    <h4 class="font-bold text-gray-800 mb-2">安装说明：</h4>
+                    <ol class="list-decimal pl-5 space-y-2">
+                        <li>下载解压提供的压缩包。</li>
+                        <li>在浏览器地址栏输入 <code>chrome://extensions/</code> 打开扩展程序页面。</li>
+                        <li>开启页面右上角的<strong>“开发者模式”</strong>。</li>
+                        <li>点击<strong>“加载已解压的扩展程序”</strong>，选择刚刚解压的文件夹即可。</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script src="index.js"></script>
+</body>
+</html>
