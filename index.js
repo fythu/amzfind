@@ -202,16 +202,18 @@ function renderShowcase(items, type) {
 
         const cardHTML = `
         <div class="masonry-item">
-            <a href="${affiliateLink}" target="_blank" class="block bg-white rounded-2xl overflow-hidden border border-gray-100 card-pop group relative">
-                <div class="w-full bg-gray-50 flex items-center justify-center p-6 aspect-square relative overflow-hidden">
-                    <img src="${img}" alt="Item" class="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300">
+            <a href="${affiliateLink}" target="_blank" class="flex bg-white rounded-xl overflow-hidden border border-gray-100 card-pop group relative p-3 gap-3 items-center">
+                <div class="w-24 h-24 sm:w-28 sm:h-28 flex-shrink-0 bg-gray-50 flex items-center justify-center rounded-lg overflow-hidden relative">
+                    <img src="${img}" alt="Item" class="w-full h-full object-contain p-1 group-hover:scale-105 transition-transform duration-300">
                 </div>
-                <div class="p-5">
-                    <h3 class="text-[15px] font-bold text-gray-800 leading-snug line-clamp-2 mb-2 group-hover:text-blue-600 transition-colors" title="${title}">${shortTitle}</h3>
-                    <div class="text-xs text-gray-500 mb-4 bg-gray-100 p-1.5 rounded inline-block">ASIN: <span class="font-mono text-gray-700">${asin}</span></div>
-                    <div class="flex justify-between items-center mt-2">
-                        <span class="text-red-600 text-lg font-bold">${price}</span>
-                        <span class="text-white bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-full text-sm font-bold transition">一键购买 ↗</span>
+                <div class="flex-1 flex flex-col justify-between py-1 min-w-0">
+                    <div>
+                        <h3 class="text-[14px] font-bold text-gray-800 leading-snug line-clamp-2 mb-1 group-hover:text-blue-600 transition-colors" title="${title}">${shortTitle}</h3>
+                        <div class="text-[11px] text-gray-400 mb-2 truncate">ASIN: <span class="font-mono text-gray-500">${asin}</span></div>
+                    </div>
+                    <div class="flex justify-between items-center mt-1">
+                        <span class="text-[#ff5000] text-lg font-bold leading-none">${price}</span>
+                        <span class="text-white bg-gradient-to-r from-[#ff7a00] to-[#ff5000] hover:from-[#ff5000] hover:to-[#ff3000] px-3 py-1 rounded-full text-xs font-bold transition shadow-sm whitespace-nowrap">去看看</span>
                     </div>
                 </div>
             </a>
