@@ -20,7 +20,7 @@ window.onload = () => {
         showPreview(decodeURIComponent(imgUrlParam));
     }
 
-    // 路由处理
+    // Routing
     if (action === 'wishlist' || action === 'alts_list' || action === 'alts') {
         const targetTab = action === 'wishlist' ? 'wishlist' : 'alts';
         switchTab(targetTab);
@@ -32,7 +32,7 @@ window.onload = () => {
                 const items = JSON.parse(jsonStr);
                 renderShowcase(items, targetTab);
             } catch(e) {
-                console.error(`解析 ${targetTab} 数据失败`, e);
+                console.error(`Failed to parse ${targetTab} data`, e);
                 document.getElementById(`${targetTab}-empty`).classList.remove('hidden');
             }
         } else {
@@ -49,7 +49,7 @@ window.onload = () => {
                 const items = JSON.parse(jsonStr);
                 renderSetupShowcase(items);
             } catch(e) {
-                console.error('解析 Setup 数据失败', e);
+                console.error('Failed to parse Setup data', e);
                 document.getElementById('setup-empty').classList.remove('hidden');
             }
         } else {
@@ -73,7 +73,7 @@ window.onload = () => {
 };
 
 function switchTab(tabId) {
-    ['source', 'bridge', 'setup', 'compare', 'wishlist', 'alts', 'download'].forEach(t => {
+    ['source', 'bridge', 'setup', 'compare', 'wishlist', 'alts', 'download', 'about', 'contact', 'privacy', 'disclaimer'].forEach(t => {
         const tab = document.getElementById('tab-' + t);
         const btn = document.getElementById('btn-tab-' + t);
         if (tab) {
@@ -93,6 +93,10 @@ function switchTab(tabId) {
             }
         }
     });
+
+    window.scrollTo(0, 0);
+    document.body.scrollTop = 0;
+    document.documentElement.scrollTop = 0;
 
     if (tabId === 'compare') {
         closeCompareTool(); 
@@ -136,11 +140,11 @@ function closeCompareTool() {
 }
 
 // ============================
-// 模块 3: Setup Showcase 极客好物分享
+// Module 3: Setup Showcase Geek Recommended Items
 // ============================
 function renderSetupShowcase(items) {
     const container = document.getElementById('setup-masonry');
-    const myAffiliateTag = "yourtag-20"; // 这是赚被动佣金的 tag！
+    const myAffiliateTag = "yourtag-20"; // This is the tag to earn passive commission!
     
     container.innerHTML = '';
     if(!items || items.length === 0) {
@@ -154,7 +158,7 @@ function renderSetupShowcase(items) {
         const price = item.p ? `$${item.p}` : 'Check on Amazon';
         const img = item.i || `https://dummyimage.com/400x400/fff/ccc&text=No+Image`;
 
-        // 提取简单标题供卡片展示（去掉多余杂乱参数）
+        // Extract short title for card display (remove redundant messy parameters)
         const shortTitle = title.split(/[|,-]/)[0].trim().substring(0, 70);
 
         const cardHTML = `
@@ -197,7 +201,7 @@ function renderShowcase(items, type) {
         const img = item.i || `https://dummyimage.com/400x400/fff/ccc&text=No+Image`;
         const asin = item.a;
         
-        // 提取简单标题供卡片展示
+        // Extract short title for card display
         const shortTitle = title.split(/[|,-]/)[0].trim().substring(0, 100) || title;
 
         const cardHTML = `
@@ -213,7 +217,7 @@ function renderShowcase(items, type) {
                     </div>
                     <div class="flex justify-between items-center mt-1">
                         <span class="text-[#ff5000] text-lg font-bold leading-none">${price}</span>
-                        <span class="text-white bg-gradient-to-r from-[#ff7a00] to-[#ff5000] hover:from-[#ff5000] hover:to-[#ff3000] px-3 py-1 rounded-full text-xs font-bold transition shadow-sm whitespace-nowrap">去看看</span>
+                        <span class="text-white bg-gradient-to-r from-[#ff7a00] to-[#ff5000] hover:from-[#ff5000] hover:to-[#ff3000] px-3 py-1 rounded-full text-xs font-bold transition shadow-sm whitespace-nowrap">Check it out</span>
                     </div>
                 </div>
             </a>
@@ -229,7 +233,7 @@ function copyShareUrl() {
         textElements.forEach(t => {
             const originalText = t.innerText;
             if (!originalText.includes('✅')) {
-                t.innerText = '✅ 链接已复制！';
+                t.innerText = '✅ Link copied!';
                 setTimeout(() => t.innerText = originalText, 3000);
             }
         });
@@ -237,7 +241,7 @@ function copyShareUrl() {
 }
 
 // ============================
-// 模块 2: Dupes 平替功能 (降级模拟)
+// Module 2: Dupes Alternative function (Fallback simulation)
 // ============================
 function extractCoreKeyword(title) {
     if (!title) return "";
@@ -267,7 +271,7 @@ async function renderBridgePage(info) {
     if (brandKeyword) document.getElementById('compare-brand').value = brandKeyword;
     if (info.asin) document.getElementById('compare-asin').value = info.asin;
     
-    // 使用静态备用数组模拟远程 JSON
+    // Use a static fallback array to simulate remote JSON
     const realDeals = [
         { title: `[Pro Altern] ${fallbackKeyword} - Top Value Bundle`, price: "$12.99", originalPrice: "$29.99", imgUrl: "https://dummyimage.com/400x400/fafafa/333&text=Dupe+1" },
         { title: `Minimalist ${fallbackKeyword} Equivalent`, price: "$8.99", originalPrice: "$15.99", imgUrl: "https://dummyimage.com/400x400/fafafa/333&text=Dupe+2" },
@@ -303,7 +307,7 @@ async function renderBridgePage(info) {
 }
 
 // ============================
-// 模块 1: Source 以图搜图
+// Module 1: Source Search by image
 // ============================
 document.getElementById('imgUrl').addEventListener('input', (e) => showPreview(e.target.value));
 
@@ -324,7 +328,7 @@ function clearPreview() {
 function handleLocalUpload(event) {
     const file = event.target.files[0];
     if (!file) return;
-    if (file.size > 2 * 1024 * 1024) alert('建议上传小于 2MB 的图片以免 URL 过长断链');
+    if (file.size > 2 * 1024 * 1024) alert('It is recommended to upload images smaller than 2MB to avoid overly long URLs and broken links');
     const reader = new FileReader();
     reader.onload = e => {
         document.getElementById('imgUrl').value = e.target.result;
@@ -336,7 +340,7 @@ function handleLocalUpload(event) {
 function searchPlatform(platform) {
     const kw = document.getElementById('keyword').value.trim();
     const img = document.getElementById('imgUrl').value.trim();
-    if (!kw && !img) return alert('缺图少词怎么找？填一个呗！');
+    if (!kw && !img) return alert('How to find without image or keywords? Please fill in one!');
 
     let url = '';
     if (platform === '1688') url = img ? `https://s.1688.com/youyuan/index.htm?tab=imageSearch&imageAddress=${encodeURIComponent(img)}` : `https://s.1688.com/selloffer/offer_search.htm?keywords=${encodeURIComponent(kw)}`;
@@ -348,11 +352,11 @@ function searchPlatform(platform) {
 }
 
 // ============================
-// 模块 4: Compare 跨平台比价 & 捡漏
+// Module 4: Compare Cross-platform price comparison & Deal hunting
 // ============================
 function searchCompare(platform) {
     const kw = document.getElementById('compare-keyword').value.trim();
-    if (!kw) return alert('请输入商品关键词后再试！');
+    if (!kw) return alert('Please enter product keywords and try again!');
 
     const encodeKw = encodeURIComponent(kw);
     let url = '';
@@ -374,7 +378,7 @@ function searchCompare(platform) {
             url = `https://www.amazon.com/s?k=${encodeKw}&i=warehouse-deals`;
             break;
         case 'amazon-outlet':
-            // 亚马逊特价清仓节点
+            // Amazon special clearance node
             url = `https://www.amazon.com/s?k=${encodeKw}&rh=n%3A16225007011`;
             break;
         case 'woot':
@@ -393,7 +397,7 @@ function searchCompare(platform) {
 
 function searchReview(platform) {
     const kw = document.getElementById('compare-keyword').value.trim();
-    if (!kw) return alert('请输入商品关键词后再试！');
+    if (!kw) return alert('Please enter product keywords and try again!');
 
     const encodeKw = encodeURIComponent(kw + ' review');
     let url = '';
@@ -415,7 +419,7 @@ function searchReview(platform) {
 
 function searchAsin(platform) {
     const asin = document.getElementById('compare-asin').value.trim();
-    if (!asin) return alert('请输入商品 ASIN 后再试！');
+    if (!asin) return alert('Please enter product ASIN and try again!');
 
     const encodeAsin = encodeURIComponent(asin);
     let url = '';
@@ -440,7 +444,7 @@ function searchAsin(platform) {
 
 function searchPromoCode(platform) {
     const brand = document.getElementById('compare-brand').value.trim();
-    if (!brand) return alert('请输入品牌名称后再试！');
+    if (!brand) return alert('Please enter brand name and try again!');
 
     const encodeBrand = encodeURIComponent(brand);
     let url = '';
