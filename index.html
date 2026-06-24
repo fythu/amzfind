@@ -25,6 +25,7 @@
         <!-- 顶部标签页切换 -->
         <div class="flex mb-8 bg-white rounded-full p-1 shadow-sm border border-gray-100 w-full sticky top-4 z-50 overflow-x-auto whitespace-nowrap" style="scrollbar-width: none;">
             <button id="btn-tab-compare" onclick="switchTab('compare')" class="flex-1 py-2.5 px-3 text-center text-sm font-semibold text-gray-600 hover:text-blue-600 rounded-full transition-all">Cross-Platform Compare</button>
+            <button id="btn-tab-products" onclick="switchTab('products')" class="flex-1 py-2.5 px-3 text-center text-sm font-semibold text-gray-600 hover:text-blue-600 rounded-full transition-all">Products</button>
             <button id="btn-tab-source" onclick="switchTab('source')" class="flex-1 py-2.5 px-3 text-center text-sm font-bold bg-blue-600 text-white rounded-full transition-all">Sourcing Tool</button>
             <button id="btn-tab-wishlist" onclick="switchTab('wishlist')" class="flex-1 py-2.5 px-3 text-center text-sm font-semibold text-gray-600 hover:text-blue-600 rounded-full transition-all">Wishlist</button>
             <button id="btn-tab-alts" onclick="switchTab('alts')" class="flex-1 py-2.5 px-3 text-center text-sm font-semibold text-gray-600 hover:text-blue-600 rounded-full transition-all">Alternatives</button>
@@ -109,6 +110,34 @@
             </div>
 
             <div id="dupe-list" class="space-y-4"></div>
+        </div>
+
+        <!-- 标签页: 产品 (Products) -->
+        <div id="tab-products" class="hidden bg-white rounded-2xl shadow-sm border border-gray-100 p-6 md:p-10 mb-8 w-full mx-auto">
+            <div class="flex justify-between items-center mb-6">
+                <div>
+                    <h1 class="text-2xl font-bold text-gray-800">Products Data</h1>
+                    <p class="text-gray-500 text-sm mt-1">Data fetched from Amazon Search Results. Hover over table headers to delete columns.</p>
+                </div>
+                <div class="flex items-center gap-3">
+                    <span id="products-count" class="text-sm font-bold text-gray-600 bg-gray-100 px-3 py-1.5 rounded-lg">Total: 0</span>
+                    <button onclick="exportProductsCSV()" class="bg-yellow-100 text-yellow-700 border border-yellow-300 hover:bg-yellow-200 font-bold py-2 px-4 rounded-xl shadow-sm text-sm transition">Export CSV</button>
+                    <button onclick="exportProductsXLS()" class="bg-green-100 text-green-700 border border-green-300 hover:bg-green-200 font-bold py-2 px-4 rounded-xl shadow-sm text-sm transition">Export XLS</button>
+                </div>
+            </div>
+            
+            <div class="overflow-x-auto rounded-xl border border-gray-200" style="max-height: 70vh;">
+                <table id="products-table" class="min-w-full bg-white relative">
+                    <thead class="sticky top-0 z-10 bg-gray-50 border-b border-gray-200">
+                        <tr id="products-table-header" class="text-gray-600 uppercase text-xs leading-normal">
+                            <!-- Headers dynamically injected -->
+                        </tr>
+                    </thead>
+                    <tbody id="products-table-body" class="text-gray-600 text-sm font-light">
+                        <!-- Rows dynamically injected -->
+                    </tbody>
+                </table>
+            </div>
         </div>
 
         <!-- 标签页 4: 跨平台比价 & 捡漏 -->
