@@ -61,6 +61,21 @@ window.onload = () => {
     }
     else if (action === 'products') {
         switchTab('products');
+        let encodedData = params.get('data');
+        if (encodedData) {
+            try {
+                encodedData = encodedData.replace(/ /g, '+');
+                const jsonStr = decodeURIComponent(atob(encodedData));
+                const items = JSON.parse(jsonStr);
+                window.currentProductsData = items;
+                document.getElementById('products-count').innerText = `Total: ${items.length}`;
+                renderProductsTable(items);
+            } catch(e) {
+                console.error('Failed to parse Products data', e);
+            }
+        } else {
+            loadProducts();
+        }
     }
     else if (amzTitle || amzAsin || action === 'dupe') {
         switchTab('bridge');
@@ -471,11 +486,18 @@ function searchPromoCode(platform) {
 // Module 5: Products Data Table
 // ============================
 function loadProducts() {
-    chrome.storage.local.get(['amazon_scraped_products'], function(result) {
-        const products = result['amazon_scraped_products'] || [];
-        document.getElementById('products-count').innerText = `Total: ${products.length}`;
-        renderProductsTable(products);
-    });
+    if (window.currentProductsData) {
+        document.getElementById('products-count').innerText = `Total: ${window.currentProductsData.length}`;
+        renderProductsTable(window.currentProductsData);
+        return;
+    }
+    if (typeof chrome !== 'undefined' && chrome.storage) {
+        chrome.storage.local.get(['amazon_scraped_products'], function(result) {
+            const products = result['amazon_scraped_products'] || [];
+            document.getElementById('products-count').innerText = `Total: ${products.length}`;
+            renderProductsTable(products);
+        });
+    }
 }
 
 function renderProductsTable(products) {
@@ -536,42 +558,69 @@ function renderProductsTable(products) {
 }
 
 function removeRow(rowIndex) {
-    chrome.storage.local.get(['amazon_scraped_products'], function(result) {
-        let products = result['amazon_scraped_products'] || [];
+    if (window.currentProductsData) {
+        let products = window.currentProductsData;
         if (rowIndex >= 0 && rowIndex < products.length) {
             products.splice(rowIndex, 1);
-            chrome.storage.local.set({ 'amazon_scraped_products': products }, function() {
-                loadProducts();
-            });
+            loadProducts();
         }
-    });
+        return;
+    }
+    if (typeof chrome !== 'undefined' && chrome.storage) {
+        chrome.storage.local.get(['amazon_scraped_products'], function(result) {
+            let products = result['amazon_scraped_products'] || [];
+            if (rowIndex >= 0 && rowIndex < products.length) {
+                products.splice(rowIndex, 1);
+                chrome.storage.local.set({ 'amazon_scraped_products': products }, function() {
+                    loadProducts();
+                });
+            }
+        });
+    }
 }
 
 function removeColumn(colIndex) {
     if (!confirm('Are you sure you want to delete this column?')) return;
     
-    chrome.storage.local.get(['amazon_scraped_products'], function(result) {
-        let products = result['amazon_scraped_products'] || [];
+    if (window.currentProductsData) {
+        let products = window.currentProductsData;
         if (products.length === 0) return;
-        
         const headers = Object.keys(products[0]);
         if (colIndex >= 0 && colIndex < headers.length) {
             const keyToRemove = headers[colIndex];
-            products = products.map(product => {
+            window.currentProductsData = products.map(product => {
                 const newProduct = { ...product };
                 delete newProduct[keyToRemove];
                 return newProduct;
             });
-            chrome.storage.local.set({ 'amazon_scraped_products': products }, function() {
-                loadProducts();
-            });
+            loadProducts();
         }
-    });
+        return;
+    }
+
+    if (typeof chrome !== 'undefined' && chrome.storage) {
+        chrome.storage.local.get(['amazon_scraped_products'], function(result) {
+            let products = result['amazon_scraped_products'] || [];
+            if (products.length === 0) return;
+            
+            const headers = Object.keys(products[0]);
+            if (colIndex >= 0 && colIndex < headers.length) {
+                const keyToRemove = headers[colIndex];
+                products = products.map(product => {
+                    const newProduct = { ...product };
+                    delete newProduct[keyToRemove];
+                    return newProduct;
+                });
+                chrome.storage.local.set({ 'amazon_scraped_products': products }, function() {
+                    loadProducts();
+                });
+            }
+        });
+    }
 }
 
 function exportProductsCSV() {
-    chrome.storage.local.get(['amazon_scraped_products'], function(result) {
-        const data = result['amazon_scraped_products'] || [];
+    const doExport = (data) => {
         if (data.length === 0) return alert('No data to export');
         
         const headers = Object.keys(data[0]);
@@ -595,12 +644,19 @@ function exportProductsCSV() {
         a.download = `amazon_products_${new Date().getTime()}.csv`;
         a.click();
         URL.revokeObjectURL(url);
-    });
+    };
+
+    if (window.currentProductsData) {
+        doExport(window.currentProductsData);
+    } else if (typeof chrome !== 'undefined' && chrome.storage) {
+        chrome.storage.local.get(['amazon_scraped_products'], function(result) {
+            doExport(result['amazon_scraped_products'] || []);
+        });
+    }
 }
 
 function exportProductsXLS() {
-    chrome.storage.local.get(['amazon_scraped_products'], function(result) {
-        const data = result['amazon_scraped_products'] || [];
+    const doExport = (data) => {
         if (data.length === 0) return alert('No data to export');
         
         let tableHTML = '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40"><head><meta charset="UTF-8"></head><body><table border="1">';
@@ -627,5 +683,13 @@ function exportProductsXLS() {
         a.download = `amazon_products_${new Date().getTime()}.xls`;
         a.click();
         URL.revokeObjectURL(url);
-    });
+    };
+
+    if (window.currentProductsData) {
+        doExport(window.currentProductsData);
+    } else if (typeof chrome !== 'undefined' && chrome.storage) {
+        chrome.storage.local.get(['amazon_scraped_products'], function(result) {
+            doExport(result['amazon_scraped_products'] || []);
+        });
+    }
 }
