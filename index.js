@@ -59,6 +59,9 @@ window.onload = () => {
     else if (action === 'download') {
         switchTab('download');
     }
+    else if (action === 'products') {
+        switchTab('products');
+    }
     else if (amzTitle || amzAsin || action === 'dupe') {
         switchTab('bridge');
         renderBridgePage({
@@ -73,7 +76,7 @@ window.onload = () => {
 };
 
 function switchTab(tabId) {
-    ['source', 'bridge', 'setup', 'compare', 'wishlist', 'alts', 'download', 'about', 'contact', 'privacy', 'disclaimer'].forEach(t => {
+    ['source', 'bridge', 'setup', 'compare', 'wishlist', 'alts', 'download', 'about', 'contact', 'privacy', 'disclaimer', 'products'].forEach(t => {
         const tab = document.getElementById('tab-' + t);
         const btn = document.getElementById('btn-tab-' + t);
         if (tab) {
@@ -100,6 +103,9 @@ function switchTab(tabId) {
 
     if (tabId === 'compare') {
         closeCompareTool(); 
+    }
+    if (tabId === 'products') {
+        loadProducts();
     }
 }
 
@@ -459,4 +465,167 @@ function searchPromoCode(platform) {
     }
 
     if (url) window.open(url, '_blank');
+}
+
+// ============================
+// Module 5: Products Data Table
+// ============================
+function loadProducts() {
+    chrome.storage.local.get(['amazon_scraped_products'], function(result) {
+        const products = result['amazon_scraped_products'] || [];
+        document.getElementById('products-count').innerText = `Total: ${products.length}`;
+        renderProductsTable(products);
+    });
+}
+
+function renderProductsTable(products) {
+    const tableHeader = document.getElementById('products-table-header');
+    const tableBody = document.getElementById('products-table-body');
+    
+    tableHeader.innerHTML = '';
+    tableBody.innerHTML = '';
+    
+    if (!products || products.length === 0) {
+        tableBody.innerHTML = '<tr><td colspan="100%" class="py-4 text-center text-gray-500">No products scraped yet.</td></tr>';
+        return;
+    }
+
+    const headers = Object.keys(products[0]);
+    
+    // Render headers
+    headers.forEach((header, index) => {
+        const th = document.createElement('th');
+        th.className = 'py-3 px-6 text-left whitespace-nowrap cursor-pointer hover:bg-red-50 hover:text-red-600 transition group';
+        th.title = 'Click to delete column';
+        th.onclick = () => removeColumn(index);
+        th.innerHTML = `${header} <span class="hidden group-hover:inline ml-1 text-red-500 text-xs">✖</span>`;
+        tableHeader.appendChild(th);
+    });
+    
+    const thAction = document.createElement('th');
+    thAction.className = 'py-3 px-6 text-center';
+    thAction.innerText = 'Action';
+    tableHeader.appendChild(thAction);
+
+    // Render rows
+    products.forEach((product, rowIndex) => {
+        const tr = document.createElement('tr');
+        tr.className = 'border-b border-gray-200 hover:bg-gray-50 transition';
+        
+        headers.forEach(header => {
+            const td = document.createElement('td');
+            td.className = 'py-3 px-6 text-left whitespace-nowrap';
+            
+            if (header === 'image' || header.toLowerCase().includes('img')) {
+                td.innerHTML = `<img src="${product[header]}" class="h-10 w-10 object-contain rounded border bg-white" alt="img">`;
+            } else if (header === 'asin') {
+                td.innerHTML = `<a href="https://www.amazon.com/dp/${product[header]}" target="_blank" class="text-blue-500 hover:underline font-mono">${product[header]}</a>`;
+            } else {
+                td.innerText = product[header] || '-';
+            }
+            tr.appendChild(td);
+        });
+        
+        const tdAction = document.createElement('td');
+        tdAction.className = 'py-3 px-6 text-center';
+        tdAction.innerHTML = `<button onclick="removeRow(${rowIndex})" class="text-red-500 hover:text-red-700 bg-red-50 hover:bg-red-100 p-1.5 rounded-lg transition" title="Delete Row"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg></button>`;
+        tr.appendChild(tdAction);
+        
+        tableBody.appendChild(tr);
+    });
+}
+
+function removeRow(rowIndex) {
+    chrome.storage.local.get(['amazon_scraped_products'], function(result) {
+        let products = result['amazon_scraped_products'] || [];
+        if (rowIndex >= 0 && rowIndex < products.length) {
+            products.splice(rowIndex, 1);
+            chrome.storage.local.set({ 'amazon_scraped_products': products }, function() {
+                loadProducts();
+            });
+        }
+    });
+}
+
+function removeColumn(colIndex) {
+    if (!confirm('Are you sure you want to delete this column?')) return;
+    
+    chrome.storage.local.get(['amazon_scraped_products'], function(result) {
+        let products = result['amazon_scraped_products'] || [];
+        if (products.length === 0) return;
+        
+        const headers = Object.keys(products[0]);
+        if (colIndex >= 0 && colIndex < headers.length) {
+            const keyToRemove = headers[colIndex];
+            products = products.map(product => {
+                const newProduct = { ...product };
+                delete newProduct[keyToRemove];
+                return newProduct;
+            });
+            chrome.storage.local.set({ 'amazon_scraped_products': products }, function() {
+                loadProducts();
+            });
+        }
+    });
+}
+
+function exportProductsCSV() {
+    chrome.storage.local.get(['amazon_scraped_products'], function(result) {
+        const data = result['amazon_scraped_products'] || [];
+        if (data.length === 0) return alert('No data to export');
+        
+        const headers = Object.keys(data[0]);
+        const csvRows = [];
+        
+        csvRows.push(headers.map(h => `"${h.replace(/"/g, '""')}"`).join(','));
+        
+        for (const row of data) {
+            const values = headers.map(header => {
+                const escaped = ('' + (row[header] || '')).replace(/"/g, '""');
+                return `"${escaped}"`;
+            });
+            csvRows.push(values.join(','));
+        }
+        
+        const csvString = '\\uFEFF' + csvRows.join('\\n');
+        const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `amazon_products_${new Date().getTime()}.csv`;
+        a.click();
+        URL.revokeObjectURL(url);
+    });
+}
+
+function exportProductsXLS() {
+    chrome.storage.local.get(['amazon_scraped_products'], function(result) {
+        const data = result['amazon_scraped_products'] || [];
+        if (data.length === 0) return alert('No data to export');
+        
+        let tableHTML = '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40"><head><meta charset="UTF-8"></head><body><table border="1">';
+        
+        const headers = Object.keys(data[0]);
+        tableHTML += '<tr>' + headers.map(h => `<th>${h}</th>`).join('') + '</tr>';
+        
+        for (const row of data) {
+            tableHTML += '<tr>' + headers.map(header => {
+                let val = row[header] || '';
+                if (header === 'image' || header.toLowerCase().includes('img')) {
+                    return `<td><img src="${val}" width="50" height="50"></td>`;
+                }
+                return `<td>${val}</td>`;
+            }).join('') + '</tr>';
+        }
+        
+        tableHTML += '</table></body></html>';
+        
+        const blob = new Blob([tableHTML], { type: 'application/vnd.ms-excel' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `amazon_products_${new Date().getTime()}.xls`;
+        a.click();
+        URL.revokeObjectURL(url);
+    });
 }
